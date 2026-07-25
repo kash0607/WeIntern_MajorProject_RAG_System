@@ -1,46 +1,34 @@
-from src.ingestion.pdf_loader import PDFLoader
-from src.indexing.chunking import Chunking
-from src.indexing.embeddings import EmbeddingModel
-from src.indexing.vector_store import VectorStore
-
-# -------------------------------
-# Load PDF Documents
-# -------------------------------
-loader = PDFLoader("data/pdfs")
-documents = loader.load_documents()
+from src.retrieval.retriever import Retriever
 
 print("=" * 50)
-print(f"Total Pages Loaded: {len(documents)}")
+print("Production RAG System")
 print("=" * 50)
 
-# -------------------------------
-# Chunk Documents
-# -------------------------------
-chunker = Chunking()
+retriever = Retriever()
 
-fixed_chunks = chunker.fixed_chunking(documents)
-recursive_chunks = chunker.recursive_chunking(documents)
+while True:
+    question = input("\nAsk a question (or type 'exit'): ")
 
-print("\nExample Fixed Chunk:\n")
-print(fixed_chunks[0].page_content[:400])
+    if question.lower() == "exit":
+        break
 
-print("\nExample Recursive Chunk:\n")
-print(recursive_chunks[0].page_content[:400])
+    results = retriever.naive_search(question)
+    
+    documents = results["documents"][0]
+    metadatas = results["metadatas"][0]
+    distances = results["distances"][0]
+    for i, (doc, meta, score) in enumerate(
+        zip(documents, metadatas, distances),
+        start=1
+    ):
 
-# -------------------------------
-# Generate Embeddings
-# -------------------------------
-embedding_model = EmbeddingModel()
+        print("=" * 80)
+        print(f"Result {i}")
+        print(f"Score : {score:.4f}")
+        print(f"Source: {meta.get('source', 'Unknown')}")
+        print(f"Page  : {meta.get('page', 'Unknown')}")
+        print("-" * 80)
+        print(doc[:500])
+        print()
 
-embeddings = embedding_model.generate_embeddings(recursive_chunks)
-
-print(f"\nGenerated {len(embeddings)} embeddings")
-
-# -------------------------------
-# Store in ChromaDB
-# -------------------------------
-vector_db = VectorStore()
-
-vector_db.store(recursive_chunks, embeddings)
-
-print("\n✅ All documents successfully stored in ChromaDB!")
+        

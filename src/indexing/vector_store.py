@@ -16,18 +16,20 @@ class VectorStore:
     def store(self, chunks, embeddings):
 
         ids = []
-
         documents = []
-
         metadatas = []
 
         for i, chunk in enumerate(chunks):
 
             ids.append(str(i))
-
             documents.append(chunk.page_content)
 
-            metadatas.append(chunk.metadata)
+            metadata = {
+                "page": chunk.metadata.get("page", "Unknown"),
+                "source": chunk.metadata.get("source", "Unknown")
+            }
+
+            metadatas.append(metadata)
 
         self.collection.add(
             ids=ids,
@@ -36,6 +38,4 @@ class VectorStore:
             metadatas=metadatas,
         )
 
-        print(
-            f"{len(ids)} vectors stored successfully."
-        )
+        print(f"{len(ids)} vectors stored successfully.")

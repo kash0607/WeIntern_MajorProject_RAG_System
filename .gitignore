@@ -17,3 +17,5 @@ vectordb/
 # OS Files
 .DS_Store
 Thumbs.db
+
+data/pdfs/
