@@ -1,34 +1,42 @@
 from src.retrieval.retriever import Retriever
+from src.llm.ollama_llm import OllamaLLM
+
+retriever = Retriever()
+llm = OllamaLLM()
 
 print("=" * 50)
 print("Production RAG System")
 print("=" * 50)
 
-retriever = Retriever()
-
 while True:
+
     question = input("\nAsk a question (or type 'exit'): ")
 
     if question.lower() == "exit":
         break
 
     results = retriever.naive_search(question)
-    
+
     documents = results["documents"][0]
     metadatas = results["metadatas"][0]
-    distances = results["distances"][0]
-    for i, (doc, meta, score) in enumerate(
-        zip(documents, metadatas, distances),
-        start=1
-    ):
 
-        print("=" * 80)
-        print(f"Result {i}")
-        print(f"Score : {score:.4f}")
-        print(f"Source: {meta.get('source', 'Unknown')}")
-        print(f"Page  : {meta.get('page', 'Unknown')}")
-        print("-" * 80)
-        print(doc[:500])
-        print()
+    context = "\n\n".join(documents)
 
-        
+    answer = llm.generate(
+        question=question,
+        context=context
+    )
+
+    print("\n" + "=" * 70)
+    print("ANSWER")
+    print("=" * 70)
+    print(answer)
+
+    print("\n" + "=" * 70)
+    print("SOURCES")
+    print("=" * 70)
+
+    for meta in metadatas:
+        print(
+            f"{meta.get('source')} (Page {meta.get('page')})"
+        )
